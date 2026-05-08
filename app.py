@@ -58,8 +58,6 @@ def load_data():
 
 df = load_data()
 
-# 4. 網頁介面 - 搜尋框
-query = st.text_input("你想聽什麼樣的歌？", placeholder="例如：心情不好想聽熱血的...")
 
 if query:
     with st.spinner('🤖 AI 正在思考中...'):
