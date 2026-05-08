@@ -67,12 +67,24 @@ if query:
                     with st.container():
                         col1, col2 = st.columns([1, 2])
                         with col1:
-                            # 這裡可以放妳的 YouTube ID 產生的連結
                             st.subheader(row['song'])
                             st.write(f"🎤 {row['artist']}")
+                            
+                            # --- 💡 新增：AI 推薦理由比對 ---
+                            # 找出是哪個關鍵字命中的
+                            matched_tags = [k for k in ai_keywords if k.lower() in str(row['AI_Keywords']).lower()]
+                            
+                            if matched_tags:
+                                st.info(f"✨ 推薦理由：這首歌的標籤包含「{', '.join(matched_tags)}」，與妳的心情契合。")
+                            
+                            # 顯示原始標籤（方便妳私下檢查可用性）
+                            with st.expander("查看原始標籤"):
+                                st.write(f"資料庫標籤：{row['AI_Keywords']}")
+                            # ----------------------------
+
                         with col2:
                             url = f"https://www.youtube.com/watch?v={row['youtube_id']}"
-                            st.video(url) # 直接在網頁內嵌播放器！
+                            st.video(url)
                         st.divider()
             else:
                 st.warning("💔 沒找到符合的歌曲，換個說法試試？")
