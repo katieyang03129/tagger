@@ -4,33 +4,36 @@ import pandas as pd
 import google.generativeai as genai
 import os
 
-# 1. 基礎配置
-st.set_page_config(page_title="AI 音樂搜尋助理", page_icon="🎵")
-st.title("🎵 我的 AI 金曲電台")
+# 1. 外部顯示語意標題
+st.markdown("### 🎙️ 語音 / ✍️ 文字搜尋")
 
-# --- 統合後的輸入區塊 ---
-st.write("你想聽什麼樣的歌？")
-
-# 建立兩欄，比例 9:1，讓按鈕看起來就在輸入框旁邊
-col1, col2 = st.columns([9, 1])
-
-with col2:
-    # 🎙️ 語音按鈕：把提示文字縮短，視覺更簡潔
-    speech_text = speech_to_text(
-        language='zh-TW', 
-        start_prompt="🎙️", 
-        stop_prompt="✅", 
-        key='my_mic'
-    )
+# 2. 建立極致貼合的佈局
+# [10, 1] 的比例會讓按鈕緊貼在長長的輸入框右側
+col1, col2 = st.columns([10, 1])
 
 with col1:
-    # ✍️ 文字搜尋框：如果用語音說話，內容會自動跳進這裡
-    initial_value = speech_text if speech_text else ""
+    # 這裡就是用戶「可以直接輸入」的地方
+    # 使用 label_visibility="collapsed" 徹底消除標題佔位，達成「只有一排」
     query = st.text_input(
-        "你想聽什麼樣的歌？", 
-        value=initial_value, 
-        label_visibility="collapsed" # 隱藏標籤讓它跟按鈕對齊
+        "search", 
+        value=st.session_state.get('voice_output', ""), 
+        placeholder="直接輸入，或點擊右側麥克風...",
+        label_visibility="collapsed"
     )
+
+with col2:
+    # 這裡就是「語音輸入」按鈕
+    # 辨識完後會自動存入變數
+    voice_text = speech_to_text(
+        language='zh-TW', 
+        start_prompt="🎤", 
+        stop_prompt="✅", 
+        key='mic_icon'
+    )
+    # 如果有語音輸入，強制重新整理並填入框框
+    if voice_text:
+        st.session_state['voice_output'] = voice_text
+        st.rerun()
 
 # 2. AI 配置
 # 2. AI 配置
