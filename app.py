@@ -14,12 +14,13 @@ genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel('models/gemini-3.1-flash-lite-preview')
 
 # 3. 讀取資料
-@st.cache_data # 這行能讓網頁讀取資料更快
+@st.cache_data
 def load_data():
     file_path = "songs_with_tags.csv"
     if os.path.exists(file_path):
-        df = pd.read_csv(file_path)
-        df.columns = df.columns.str.strip()
+        # 💡 加入 encoding 防止亂碼，並強力清洗欄位名稱
+        df = pd.read_csv(file_path, encoding='utf-8-sig')
+        df.columns = df.columns.str.strip() # 👈 這行最重要，清掉所有空格
         return df
     return None
 
@@ -38,6 +39,7 @@ if query:
             st.write(f"💡 AI 解析關鍵字：`{', '.join(ai_keywords)}`")
 
             # 搜尋邏輯
+            # 搜尋邏輯 - 加上 str() 確保不會因為空值崩潰
             mask = df['AI_Keywords'].apply(lambda x: any(k.lower() in str(x).lower() for k in ai_keywords))
             results = df[mask]
 
