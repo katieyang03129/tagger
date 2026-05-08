@@ -4,36 +4,41 @@ import pandas as pd
 import google.generativeai as genai
 import os
 
-# 1. 外部顯示語意標題
+# 1. 初始化 session_state (這段放最上面，避免報錯)
+if 'voice_output' not in st.session_state:
+    st.session_state['voice_output'] = ""
+
 st.markdown("### 🎙️ 語音 / ✍️ 文字搜尋")
 
-# 2. 建立極致貼合的佈局
-# [10, 1] 的比例會讓按鈕緊貼在長長的輸入框右側
-col1, col2 = st.columns([10, 1])
+# 2. 建立並排佈局
+col1, col2 = st.columns([9, 1])
 
 with col1:
-    # 這裡就是用戶「可以直接輸入」的地方
-    # 使用 label_visibility="collapsed" 徹底消除標題佔位，達成「只有一排」
+    # 這裡會接收語音或手動輸入
     query = st.text_input(
         "search", 
-        value=st.session_state.get('voice_output', ""), 
-        placeholder="直接輸入，或點擊右側麥克風...",
+        value=st.session_state['voice_output'], 
+        placeholder="直接輸入，或按右側麥克風...",
         label_visibility="collapsed"
     )
 
 with col2:
-    # 這裡就是「語音輸入」按鈕
-    # 辨識完後會自動存入變數
+    # 語音按鈕
     voice_text = speech_to_text(
         language='zh-TW', 
         start_prompt="🎤", 
         stop_prompt="✅", 
         key='mic_icon'
     )
-    # 如果有語音輸入，強制重新整理並填入框框
-    if voice_text:
+    
+    # 關鍵邏輯：當錄音有結果時，直接更新 state 並重新整理
+    if voice_text and voice_text != st.session_state['voice_output']:
         st.session_state['voice_output'] = voice_text
         st.rerun()
+
+# 💡 重要：請檢查妳的 app.py 下方，
+# 是否還有一行 query = st.text_input("你想聽什麼樣的歌？")
+# 如果有，請一定要把它刪掉！不然它會一直出現第二個框。
 
 # 2. AI 配置
 # 2. AI 配置
