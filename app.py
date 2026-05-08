@@ -1,17 +1,32 @@
 import streamlit as st
+from streamlit_mic_recorder import speech_to_text
 import pandas as pd
 import google.generativeai as genai
 import os
 
 # 1. 基礎配置
 st.set_page_config(page_title="AI 音樂搜尋助理", page_icon="🎵")
-st.title("🎵 我的專屬 AI 音樂助理")
-st.markdown("輸入妳的心情或想聽的風格，讓 AI 幫妳從資料庫中翻找！")
+st.title("🎵 我的 AI 金曲電台")
+
+# 1. 建立語音辨識按鈕 (放在側邊欄或主畫面都可以)
+with st.sidebar:
+    st.write("🎙️ 用說的也可以：")
+    # language='zh-TW' 確保辨識台灣中文
+    speech_text = speech_to_text(
+        language='zh-TW', 
+        start_prompt="按我開始說話", 
+        stop_prompt="說完了，請解析", 
+        key='my_mic'
+    )
+
+# 2. 結合語音與文字輸入
+# 如果有語音辨識結果，就用語音文字；否則預設為空
+initial_value = speech_text if speech_text else ""
+query = st.text_input("你想聽什麼樣的歌？", value=initial_value)
 
 # 2. AI 配置
 # 2. AI 配置
-API_KEY = "AIzaSyBuFEvxIZv3hNvt6289iSIG1frWZ0dZ4lE"
-genai.configure(api_key=API_KEY)
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 model = genai.GenerativeModel('models/gemini-3.1-flash-lite-preview')
 
 # 3. 讀取資料
