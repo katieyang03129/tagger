@@ -8,21 +8,29 @@ import os
 st.set_page_config(page_title="AI 音樂搜尋助理", page_icon="🎵")
 st.title("🎵 我的 AI 金曲電台")
 
-# 1. 建立語音辨識按鈕 (放在側邊欄或主畫面都可以)
-with st.sidebar:
-    st.write("🎙️ 用說的也可以：")
-    # language='zh-TW' 確保辨識台灣中文
+# --- 統合後的輸入區塊 ---
+st.write("你想聽什麼樣的歌？")
+
+# 建立兩欄，比例 9:1，讓按鈕看起來就在輸入框旁邊
+col1, col2 = st.columns([9, 1])
+
+with col2:
+    # 🎙️ 語音按鈕：把提示文字縮短，視覺更簡潔
     speech_text = speech_to_text(
         language='zh-TW', 
-        start_prompt="按我開始說話", 
-        stop_prompt="說完了，請解析", 
+        start_prompt="🎙️", 
+        stop_prompt="✅", 
         key='my_mic'
     )
 
-# 2. 結合語音與文字輸入
-# 如果有語音辨識結果，就用語音文字；否則預設為空
-initial_value = speech_text if speech_text else ""
-query = st.text_input("你想聽什麼樣的歌？", value=initial_value)
+with col1:
+    # ✍️ 文字搜尋框：如果用語音說話，內容會自動跳進這裡
+    initial_value = speech_text if speech_text else ""
+    query = st.text_input(
+        "你想聽什麼樣的歌？", 
+        value=initial_value, 
+        label_visibility="collapsed" # 隱藏標籤讓它跟按鈕對齊
+    )
 
 # 2. AI 配置
 # 2. AI 配置
