@@ -9,11 +9,10 @@ st.title("🎵 我的專屬 AI 音樂助理")
 st.markdown("輸入妳的心情或想聽的風格，讓 AI 幫妳從資料庫中翻找！")
 
 # 2. AI 配置
-# 從 Streamlit 的 Secrets 裡抓取 Key，這行不會顯示妳的私密金鑰
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-
-# 模型名稱建議檢查一下，目前最新的穩定版通常是 'gemini-1.5-flash'
-model = genai.GenerativeModel('gemini-1.5-flash')
+# 2. AI 配置
+API_KEY = "AIzaSyBuFEvxIZv3hNvt6289iSIG1frWZ0dZ4lE"
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel('models/gemini-3.1-flash-lite-preview')
 
 # 3. 讀取資料
 @st.cache_data
