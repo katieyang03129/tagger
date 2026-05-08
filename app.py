@@ -58,14 +58,22 @@ if query:
             # 搜尋邏輯
             # 搜尋邏輯 - 加上 str() 確保不會因為空值崩潰
             # 找到搜尋邏輯那一行，改為：
-            mask = df['AI_Keywords'].apply(lambda x: any(str(k).lower() in str(x).lower() or str(x).lower() in str(k).lower() for k in ai_keywords))
-            results = df[mask]
+            # 1. 基礎搜尋：先找出有命中的歌曲
+            mask = df['AI_Keywords'].apply(lambda x: any(k.lower() in str(x).lower() for k in ai_keywords))
+            results = df[mask].copy() # 建立一個副本來進行計算
 
             if not results.empty:
-                st.success(f"🔍 找到 {len(results)} 首歌曲：")
-                # 💡 在這裡先顯示 AI 到底拿哪幾個詞去搜尋，方便妳比對
-                st.write(f"🤖 AI 決定用這些詞去搜：`{', '.join(ai_keywords)}`")
+                # 2. 計算「命中分數」：這首歌中了幾個關鍵字？
+                results['match_score'] = results['AI_Keywords'].apply(
+                    lambda x: sum(1 for k in ai_keywords if k.lower() in str(x).lower())
+                )
+
+                # 3. 執行排序：分數高的排前面
+                results = results.sort_values(by='match_score', ascending=False)
+
+                st.success(f"🔍 為妳精選了 {len(results)} 首歌曲（已按契合度排序）：")
                 
+                # 4. 顯示歌曲 (這部分可以延用妳原本的 UI)
                 for _, row in results.iterrows():
                     with st.container():
                         col1, col2 = st.columns([1, 2])
@@ -73,17 +81,13 @@ if query:
                             st.subheader(row['song'])
                             st.write(f"🎤 {row['artist']}")
                             
-                            # --- 💡 比對命中邏輯 ---
-                            # 找出是哪些關鍵字真正命中了這首歌
+                            # 💡 增加一個小提示，顯示這首歌有多契合
+                            match_percent = int((row['match_score'] / len(ai_keywords)) * 100)
+                            st.caption(f"🎯 契合度：{match_percent}%")
+                            
                             matched_tags = [k for k in ai_keywords if k.lower() in str(row['AI_Keywords']).lower()]
-                            
-                            if matched_tags:
-                                # 這裡讓妳一眼看出是不是因為「流行」這個詞才被抓進來的
-                                st.info(f"✨ 命中標籤：{', '.join(matched_tags)}")
-                            
-                            with st.expander("查看這首歌的所有標籤"):
-                                st.write(f"資料庫標籤：{row['AI_Keywords']}")
-
+                            st.info(f"✨ 命中：{', '.join(matched_tags)}")
+                        
                         with col2:
                             url = f"https://www.youtube.com/watch?v={row['youtube_id']}"
                             st.video(url)
