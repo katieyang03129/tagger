@@ -40,7 +40,8 @@ if query:
 
             # 搜尋邏輯
             # 搜尋邏輯 - 加上 str() 確保不會因為空值崩潰
-            mask = df['AI_Keywords'].apply(lambda x: any(k.lower() in str(x).lower() for k in ai_keywords))
+            # 找到搜尋邏輯那一行，改為：
+            mask = df['AI_Keywords'].apply(lambda x: any(str(k).lower() in str(x).lower() or str(x).lower() in str(k).lower() for k in ai_keywords))
             results = df[mask]
 
             if not results.empty:
