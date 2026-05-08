@@ -60,7 +60,7 @@ if query:
             # 找到搜尋邏輯那一行，改為：
             # 1. 基礎搜尋：先找出有命中的歌曲
             mask = df['AI_Keywords'].apply(lambda x: any(k.lower() in str(x).lower() for k in ai_keywords))
-            results = df[mask].copy() # 建立一個副本來進行計算
+            results = df[mask].copy()
 
             if not results.empty:
                 # 2. 計算「命中分數」：這首歌中了幾個關鍵字？
