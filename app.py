@@ -33,11 +33,11 @@ if query:
     with st.spinner('🤖 AI 正在思考中...'):
         # 1. 升級後的 Prompt：讓 AI 知道妳的歌單背景
         prompt = f"""
-        你是一個專業的華語流行音樂導覽員。用戶說：'{query}'。
-        注意：我的資料庫主要是「80-90 年代經典金曲」與「華語抒情流行」。
-        
-        請根據語意提取 3-5 個關鍵字，並務必包含 1-2 個較通用的標籤（如：抒情、經典、流行、悲傷、溫柔）。
-        不要使用 Lo-fi、Jazz、藍調等資料庫可能沒有的術語。
+        你是一個音樂標籤提取器。用戶說：'{query}'。
+        請提取 2-3 個最核心、最具代表性的關鍵字。
+        注意：
+        1. 除非用戶明確要求，否則禁止使用「流行」、「經典」、「音樂」、「歌曲」這類過於廣泛的詞。
+        2. 盡量提取具體的風格（如：搖滾、民謠）或具體的情緒。
         只回傳關鍵字並用逗號隔開。
         """
 
@@ -63,6 +63,9 @@ if query:
 
             if not results.empty:
                 st.success(f"🔍 找到 {len(results)} 首歌曲：")
+                # 💡 在這裡先顯示 AI 到底拿哪幾個詞去搜尋，方便妳比對
+                st.write(f"🤖 AI 決定用這些詞去搜：`{', '.join(ai_keywords)}`")
+                
                 for _, row in results.iterrows():
                     with st.container():
                         col1, col2 = st.columns([1, 2])
@@ -70,17 +73,16 @@ if query:
                             st.subheader(row['song'])
                             st.write(f"🎤 {row['artist']}")
                             
-                            # --- 💡 新增：AI 推薦理由比對 ---
-                            # 找出是哪個關鍵字命中的
+                            # --- 💡 比對命中邏輯 ---
+                            # 找出是哪些關鍵字真正命中了這首歌
                             matched_tags = [k for k in ai_keywords if k.lower() in str(row['AI_Keywords']).lower()]
                             
                             if matched_tags:
-                                st.info(f"✨ 推薦理由：這首歌的標籤包含「{', '.join(matched_tags)}」，與妳的心情契合。")
+                                # 這裡讓妳一眼看出是不是因為「流行」這個詞才被抓進來的
+                                st.info(f"✨ 命中標籤：{', '.join(matched_tags)}")
                             
-                            # 顯示原始標籤（方便妳私下檢查可用性）
-                            with st.expander("查看原始標籤"):
+                            with st.expander("查看這首歌的所有標籤"):
                                 st.write(f"資料庫標籤：{row['AI_Keywords']}")
-                            # ----------------------------
 
                         with col2:
                             url = f"https://www.youtube.com/watch?v={row['youtube_id']}"
