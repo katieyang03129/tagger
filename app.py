@@ -72,6 +72,7 @@ search_trigger = st.button("🔍 開始搜尋", type="primary")
 
 # 只有在按下按鈕，或是語音輸入剛完成時才觸發
 # --- 核心搜尋邏輯升級版 ---
+# --- 核心搜尋邏輯升級版 ---
 if (search_trigger or st.session_state['voice_output']) and query:
     with st.spinner('🤖 AI 正在思考中...'):
         try:
@@ -82,12 +83,15 @@ if (search_trigger or st.session_state['voice_output']) and query:
             # 2. 建立一個複製品來計算分數
             temp_df = df.copy()
 
-            # 3. 計算權重分數
+            # 💡 在這裡先定義 user_query_lower
+            user_query_lower = query.lower()
+
+            # 3. 定義計算分數的函式
             def calculate_score(row):
                 score = 0
-                user_query_lower = query.lower()
                 
                 # [權重 A]：歌手名稱完全命中 (最高優先)
+                # str() 轉換是為了防止資料庫有空值導致報錯
                 if str(row['artist']).lower() in user_query_lower:
                     score += 50 
                 
@@ -101,32 +105,32 @@ if (search_trigger or st.session_state['voice_output']) and query:
                 
                 return score
 
+            # 4. 執行計算並排序
             temp_df['match_score'] = temp_df.apply(calculate_score, axis=1)
-
-            # 4. 只篩選出分數大於 0 的結果
+            
+            # 只篩選出有分數的結果
             results = temp_df[temp_df['match_score'] > 0].sort_values(by='match_score', ascending=False)
 
             if not results.empty:
-                st.success(f"🔍 找到 {len(results)} 首相關歌曲：")
+                st.success(f"🔍 為妳精選了 {len(results)} 首歌曲：")
                 
                 for _, row in results.iterrows():
                     with st.container():
                         c1, c2 = st.columns([1, 2])
                         with c1:
-                            # 如果分數很高，顯示「精確命中」
-                            if row['match_score'] >= 50:
-                                st.subheader(f"🎯 {row['song']}")
-                            else:
-                                st.subheader(row['song'])
-                                
+                            # 分數達 50 代表歌名或歌手有中，顯示強匹配圖示
+                            title_prefix = "🎯 " if row['match_score'] >= 50 else ""
+                            st.subheader(f"{title_prefix}{row['song']}")
                             st.write(f"🎤 {row['artist']}")
                             
                             # 顯示命中原因
                             matched_tags = [k for k in ai_keywords if k.lower() in str(row['AI_Keywords']).lower()]
                             if matched_tags:
                                 st.info(f"✨ 標籤命中：{', '.join(matched_tags)}")
+                            
+                            # 如果是歌手匹配中的，特別標註
                             if str(row['artist']).lower() in user_query_lower:
-                                st.write("✅ 歌手精確匹配")
+                                st.caption("✅ 歌手精確匹配")
                         
                         with c2:
                             url = f"https://www.youtube.com/watch?v={row['youtube_id']}"
