@@ -66,15 +66,28 @@ with col1:
     )
 
 with col2:
-    # 語音按鈕：辨識完後會存入變數並觸發 rerun 以填入輸入框
+    # 1. 語音按鈕組件
     voice_text = speech_to_text(
         language='zh-TW', 
-        start_prompt="🎤", 
-        stop_prompt="✅", 
+        start_prompt="🎤",   # 初始圖示
+        stop_prompt="🛑",    # 錄音中圖示
         key='mic_icon'
     )
-    if voice_text and voice_text != st.session_state['voice_output']:
+    
+    # 2. 顯示錄音狀態提示
+    # 當按鈕被按下（關鍵字 mic_icon 為 True）且還沒拿到文字時，顯示提示
+    if st.session_state.get('mic_icon') and not voice_text:
+        st.toast("正在聆聽中...請開始說話", icon="🎙️")
+        # 在輸入框下方顯示一個小的紅點提示
+        st.caption(":red[● 錄音中]")
+
+# 3. 處理錄音完成後的邏輯 (放在 col2 外面或下方)
+if voice_text:
+    if voice_text != st.session_state['voice_output']:
+        # 顯示短暫的成功綠色勾勾
+        st.toast("辨識完成！", icon="✅")
         st.session_state['voice_output'] = voice_text
+        # 強制重整讓文字填入 text_input
         st.rerun()
 
 # 搜尋按鈕
