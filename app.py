@@ -54,17 +54,6 @@ def load_data():
 df = load_data()
 
 # --- STEP 4: 搜尋介面佈局 (語音與文字整合) ---
-col1, col2 = st.columns([9, 1])
-
-with col1:
-    # 接收文字輸入或語音轉譯的結果
-    query = st.text_input(
-        "搜尋框", 
-        value=st.session_state['voice_output'], 
-        placeholder="搜尋歌手、歌名或心情 (例如：王菲 空靈)...",
-        label_visibility="collapsed"
-    )
-
 # --- 搜尋介面佈局 ---
 col1, col2 = st.columns([7, 3]) # 稍微調寬 col2 以容納文字按鈕
 
