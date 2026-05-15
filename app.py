@@ -54,39 +54,36 @@ def load_data():
 df = load_data()
 
 # --- STEP 4: 搜尋介面佈局 (語音與文字整合) ---
-# --- 搜尋介面佈局 ---
-col1, col2 = st.columns([7, 3]) # 稍微調寬 col2 以容納文字按鈕
+# --- 搜尋介面佈局 (嚴格保持只有這一組 col) ---
+col1, col2 = st.columns([7, 3]) 
 
 with col1:
+    # 這是唯一的主搜尋框
     query = st.text_input(
-        "搜尋框", 
+        "main_search", 
         value=st.session_state['voice_output'], 
-        placeholder="搜尋歌手、歌名或心情...",
+        placeholder="搜尋歌手、歌名或心情 (例如：王菲 空靈)...",
         label_visibility="collapsed"
     )
 
 with col2:
-    # 透過參數切換按鈕文字
+    # 語音按鈕：文字會隨狀態切換
     voice_text = speech_to_text(
         language='zh-TW', 
-        start_prompt="🎙️ 語音輸入",  # 沒錄音時看到的文字
-        stop_prompt="✅ 輸入完成",   # 錄音時看到的文字
+        start_prompt="🎙️ 語音輸入", 
+        stop_prompt="✅ 輸入完成", 
         key='mic_icon'
     )
 
-# --- 狀態提示邏輯 ---
-# 只有在「點了按鈕」且「還沒講完話」的時候，顯示「語音輸入中..」
+# --- 動態狀態提示 ---
+# 關鍵：當 mic_icon 為 True 且還沒拿到文字時，顯示「語音輸入中...」
 if st.session_state.get('mic_icon') and not voice_text:
-    st.markdown("💬 :red[語音輸入中...]")
+    st.markdown("💬 :red[語音輸入中...請開始說話]")
 
-# 3. 處理錄音完成後的邏輯 (放在 col2 外面或下方)
-if voice_text:
-    if voice_text != st.session_state['voice_output']:
-        # 顯示短暫的成功綠色勾勾
-        st.toast("辨識完成！", icon="✅")
-        st.session_state['voice_output'] = voice_text
-        # 強制重整讓文字填入 text_input
-        st.rerun()
+# 處理辨識成功後的邏輯
+if voice_text and voice_text != st.session_state['voice_output']:
+    st.session_state['voice_output'] = voice_text
+    st.rerun()
 
 # 搜尋按鈕
 search_button = st.button("🔍 開始搜尋", type="primary", use_container_width=True)
