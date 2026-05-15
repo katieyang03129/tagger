@@ -65,22 +65,30 @@ with col1:
         label_visibility="collapsed"
     )
 
+# --- 搜尋介面佈局 ---
+col1, col2 = st.columns([7, 3]) # 稍微調寬 col2 以容納文字按鈕
+
+with col1:
+    query = st.text_input(
+        "搜尋框", 
+        value=st.session_state['voice_output'], 
+        placeholder="搜尋歌手、歌名或心情...",
+        label_visibility="collapsed"
+    )
+
 with col2:
-    # 1. 語音按鈕
+    # 透過參數切換按鈕文字
     voice_text = speech_to_text(
         language='zh-TW', 
-        start_prompt="🎤", 
-        stop_prompt="🛑", 
+        start_prompt="🎙️ 語音輸入",  # 沒錄音時看到的文字
+        stop_prompt="✅ 輸入完成",   # 錄音時看到的文字
         key='mic_icon'
     )
 
-# --- 2. 在搜尋框下方顯示狀態 (搬到 columns 外面，視圖更清楚) ---
+# --- 狀態提示邏輯 ---
+# 只有在「點了按鈕」且「還沒講完話」的時候，顯示「語音輸入中..」
 if st.session_state.get('mic_icon') and not voice_text:
-    # 錄音中：顯示醒目的紅字與閃爍感
-    st.markdown("🎯 :red[正在聆聽中...請開始說話]")
-elif voice_text:
-    # 辨識完成：顯示綠色提示
-    st.markdown("✅ :green[辨識完成！正在為您搜尋...]")
+    st.markdown("💬 :red[語音輸入中...]")
 
 # 3. 處理錄音完成後的邏輯 (放在 col2 外面或下方)
 if voice_text:
