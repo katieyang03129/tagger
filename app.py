@@ -67,18 +67,23 @@ with col1:
     )
 
 with col2:
-    # 語音按鈕：文字會隨狀態切換
+    # 語音按鈕
     voice_text = speech_to_text(
         language='zh-TW', 
         start_prompt="🎙️ 語音輸入", 
         stop_prompt="✅ 輸入完成", 
-        key='mic_icon'
+        key='mic_recorder' # 換一個 key 確保狀態刷新
     )
 
-# --- 動態狀態提示 ---
-# 關鍵：當 mic_icon 為 True 且還沒拿到文字時，顯示「語音輸入中...」
-if st.session_state.get('mic_icon') and not voice_text:
-    st.markdown("💬 :red[語音輸入中...請開始說話]")
+# --- 改用這種方式捕捉即時狀態 ---
+# 當按鈕被按下（開始錄音），這個 key 的內容會存在，但 voice_text 還沒產出
+if st.session_state.get('mic_recorder') is not None:
+    # 如果已經拿到文字了，就代表錄音結束了，不要顯示紅字
+    if not voice_text:
+        st.markdown("💬 :red[語音輸入中...請開始說話]")
+    else:
+        # 拿到文字的瞬間，給一個短暫的綠色成功提示
+        st.markdown("✅ :green[辨識成功！]")
 
 # 處理辨識成功後的邏輯
 if voice_text and voice_text != st.session_state['voice_output']:
