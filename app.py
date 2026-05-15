@@ -22,10 +22,12 @@ model = genai.GenerativeModel('models/gemini-3.1-flash-lite-preview')
 @st.cache_data(show_spinner=False)
 def get_ai_keywords(user_query):
     prompt = f"""
-    你是一個專業音樂評論家。當用戶搜尋內容：'{user_query}' 時：
-    1. 提取 2-3 個核心關鍵字。
-    2. 如果包含特定歌手，請務必提取該歌手最具代表性的音色特徵或情感氛圍（例如：空靈、懶散、冷冽等）。
-    3. 嚴禁多餘描述，只回傳關鍵字並用逗號隔開。
+    你是一個專業音樂標籤提取器。
+    用戶輸入：'{user_query}'
+    請提取 3 個關鍵字，規則如下：
+    1. 第一個關鍵字必須是從用戶輸入中提取的核心名詞（如歌名或歌手名）。
+    2. 另外 2 個可以是風格或情感聯想（如：空靈、震撼）。
+    只回傳關鍵字並用逗號隔開。
     """
     try:
         response = model.generate_content(prompt)
@@ -92,23 +94,18 @@ if search_trigger and query:
 
                 def calculate_score(row):
                     score = 0
-                    artist_val = str(row['artist']).lower()
-                    song_val = str(row['song']).lower()
-                    tag_val = str(row['AI_Keywords']).lower()
+                    song_val = str(row['song']).lower().strip()
+                    user_input = query.lower().strip() # 妳在框框裡打的「惡魔之子」
+                
+                    # --- 強制媒合：只要歌名裡有妳打的字，直接給 500 分 (絕對保送) ---
+                    if user_input in song_val:
+                        score += 500
                     
-                    # [權重 A]：歌手/歌名精確命中
-                    if artist_val in user_query_lower or user_query_lower in artist_val: score += 50 
-                    if song_val in user_query_lower: score += 50
-                    
-                    # [權重 B]：標籤命中
-                    tag_matches = 0
+                    # --- 原本的 AI 關鍵字權重 (聯想用) ---
                     for k in ai_keywords:
-                        if k.lower() in tag_val:
-                            tag_matches += 1
+                        if k.lower().strip() in str(row['AI_Keywords']).lower():
                             score += 30
-                    
-                    # [權重 C]：複合加分
-                    if score >= 50 and tag_matches > 0: score += 20 
+                            
                     return score
 
                 temp_df['match_score'] = temp_df.apply(calculate_score, axis=1)
