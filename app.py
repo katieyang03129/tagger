@@ -66,20 +66,21 @@ with col1:
     )
 
 with col2:
-    # 1. 語音按鈕組件
+    # 1. 語音按鈕
     voice_text = speech_to_text(
         language='zh-TW', 
-        start_prompt="🎤",   # 初始圖示
-        stop_prompt="🛑",    # 錄音中圖示
+        start_prompt="🎤", 
+        stop_prompt="🛑", 
         key='mic_icon'
     )
-    
-    # 2. 顯示錄音狀態提示
-    # 當按鈕被按下（關鍵字 mic_icon 為 True）且還沒拿到文字時，顯示提示
-    if st.session_state.get('mic_icon') and not voice_text:
-        st.toast("正在聆聽中...請開始說話", icon="🎙️")
-        # 在輸入框下方顯示一個小的紅點提示
-        st.caption(":red[● 錄音中]")
+
+# --- 2. 在搜尋框下方顯示狀態 (搬到 columns 外面，視圖更清楚) ---
+if st.session_state.get('mic_icon') and not voice_text:
+    # 錄音中：顯示醒目的紅字與閃爍感
+    st.markdown("🎯 :red[正在聆聽中...請開始說話]")
+elif voice_text:
+    # 辨識完成：顯示綠色提示
+    st.markdown("✅ :green[辨識完成！正在為您搜尋...]")
 
 # 3. 處理錄音完成後的邏輯 (放在 col2 外面或下方)
 if voice_text:
